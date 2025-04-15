@@ -182,7 +182,63 @@ void TestDestructor(){
 	cout << "NO ERRORS.  Use valgrind to check!" << endl << endl;
 }
 
+void TestSelfLoop() {
+	cout << "Testing Self Loop Edge..." << endl;
+	Graph g;
+	g.AddNode(1);
 
+	const GraphEdge* e = g.AddEdge(1, 1, 42);
+	assert(e->from == 1);
+	assert(e->to == 1);
+	assert(e->weight == 42);
+
+	assert(g.EdgesToString() == "[((1)->(1) w:42)]");
+
+	cout << "PASSED!" << endl << endl;
+}
+
+
+void TestManyNodesAndEdges() {
+	cout << "Testing Graph with Many Nodes and Edges..." << endl;
+	Graph g;
+
+	// Add 100 nodes
+	for (nodekey_t i = 1; i <= 100; i++) {
+		g.AddNode(i);
+	}
+
+	assert(g.Order() == 100);
+
+	// Add edges between even nodes only
+	for (nodekey_t i = 2; i <= 98; i += 2) {
+		g.AddEdge(i, i+2, i); // weight is i
+	}
+
+	assert(g.Size() == 49); // edges between 2->4, 4->6, ..., 98->100
+
+	cout << "PASSED!" << endl << endl;
+}
+
+
+void TestDuplicateEdgeErrorMessage() {
+	cout << "Testing Duplicate Edge Exception Message..." << endl;
+	Graph g;
+	g.AddNode(1);
+	g.AddNode(2);
+
+	const GraphEdge* e1 = g.AddEdge(1, 2, 5);
+	try {
+		g.AddEdge(1, 2, 10); // attempt duplicate edge
+		assert(false); // should never get here
+	} catch (const invalid_argument& e) {
+		string msg = e.what();
+		assert(msg.find("Duplicate edge") != string::npos);
+		assert(msg.find("1") != string::npos);
+		assert(msg.find("2") != string::npos);
+	}
+
+	cout << "PASSED!" << endl << endl;
+}
 
 int main(){
 	
@@ -192,6 +248,9 @@ int main(){
 	TestGetOutwardEdgesFrom();
 	TestGetNodes();
 	TestDestructor();
+	TestSelfLoop();
+	TestManyNodesAndEdges();
+	TestDuplicateEdgeErrorMessage();
 
 	
 	cout << "ALL TESTS PASSED!" << endl;
