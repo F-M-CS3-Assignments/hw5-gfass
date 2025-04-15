@@ -70,8 +70,67 @@ int DijkstraTest(){
 void MoreDijkstraTests(){
 	cout << "Deep Testing Dijkstra Algorithm..." << endl;
 
-	// Your code goes here!
+	// Test 2: Single node graph
+	{
+		Graph g;
+		g.AddNode(42);
+		assert(dijkstra(42, 42, &g) == 0);  // Distance to self should be 0
+	}
 
+	// Test 3: Unreachable destination
+	{
+		Graph g;
+		g.AddNode(1);
+		g.AddNode(2);
+		assert(dijkstra(1, 2, &g) == -1);  // No edge between them
+	}
+
+	// Test 4: Two-node connected graph
+	{
+		Graph g;
+		g.AddNode(1);
+		g.AddNode(2);
+		g.AddEdge(1, 2, 5);
+		assert(dijkstra(1, 2, &g) == 5);
+		assert(dijkstra(2, 1, &g) == -1);  // No reverse edge
+	}
+
+	// Test 5: Cycle in graph
+	{
+		Graph g;
+		g.AddNode(1);
+		g.AddNode(2);
+		g.AddNode(3);
+		g.AddEdge(1, 2, 1);
+		g.AddEdge(2, 3, 1);
+		g.AddEdge(3, 1, 1);
+		assert(dijkstra(1, 3, &g) == 2);
+	}
+
+	// Test 6: Graph with multiple paths (choosing shortest)
+	{
+		Graph g;
+		g.AddNode(1);
+		g.AddNode(2);
+		g.AddNode(3);
+		g.AddEdge(1, 2, 10);
+		g.AddEdge(1, 3, 3);
+		g.AddEdge(3, 2, 2);
+		assert(dijkstra(1, 2, &g) == 5);  // Path: 1 → 3 → 2
+	}
+
+	// Test 7: Disconnected node
+	{
+		Graph g;
+		g.AddNode(1);
+		g.AddNode(2);
+		g.AddNode(3);
+		g.AddEdge(1, 2, 4);
+		// node 3 is disconnected
+		assert(dijkstra(1, 3, &g) == -1);
+	}
+
+	
 	cout << "DONE Deep Testing Dijkstra Algorithm" << endl;
 }
 

@@ -2,6 +2,7 @@
 #include "BetterPriorityQueue.h"
 #include <climits>
 #include <map>
+#include <set>  // Needed for tracking visited nodes
 
 /*
  * Dijkstra's Algorithm
@@ -13,18 +14,14 @@
  */
 
 int dijkstra(nodekey_t source, nodekey_t destination, const Graph *graph) {
-    // Check if both the source and destination nodes exist in the graph
     if (!graph->IsPresent(source) || !graph->IsPresent(destination)) {
         return -1;
     }
 
-    // Stores the shortest distance from source to each node
     std::map<nodekey_t, int> minDistance;
-
-    // Priority queue to select the next node with the smallest distance
+    std::set<nodekey_t> visited;
     BetterPriorityQueue frontier;
 
-    // Initialize all distances to "infinity" except for the source node
     for (nodekey_t node : graph->GetNodes()) {
         BPQNode entry;
         entry.gnode = node;
@@ -33,39 +30,45 @@ int dijkstra(nodekey_t source, nodekey_t destination, const Graph *graph) {
         frontier.push(entry);
     }
 
-    // Main loop: process nodes in order of increasing distance
     while (!frontier.empty()) {
-        BPQNode current = frontier.top();
-        frontier.pop();
+    BPQNode current = frontier.top();
+    frontier.pop();
 
-        // If we reach the destination, return the distance
-        if (current.gnode == destination) {
-            return current.pri;
-        }
+   // std::cout << "Visiting node: " << current.gnode << " with priority: " << current.pri << std::endl;
 
-        // Stop if remaining nodes are unreachable
-        if (current.pri == INT_MAX) {
-            break;
-        }
-
-        // Traverse all neighboring edges
-        for (const GraphEdge* connection : graph->GetOutwardEdgesFrom(current.gnode)) {
-            nodekey_t neighbor = connection->to;
-            int potentialDistance = current.pri + connection->weight;
-
-            // Update distance if a shorter path is found
-            if (potentialDistance < minDistance[neighbor]) {
-                minDistance[neighbor] = potentialDistance;
-
-                BPQNode updatedNode;
-                updatedNode.gnode = neighbor;
-                updatedNode.pri = potentialDistance;
-
-                frontier.Update(updatedNode);
-            }
-        }
+    if (visited.count(current.gnode)) {
+        continue;
     }
 
-    // If destination is unreachable
-    return -1;
+    // 🛑 Move this block UP so you break early on unreached nodes
+    if (current.pri == INT_MAX) {
+      //  std::cout << "Remaining node unreachable. Breaking.\n";
+        break;
+    }
+
+    visited.insert(current.gnode);
+
+    if (current.gnode == destination) {
+      //  std::cout << "Reached destination with distance: " << current.pri << std::endl;
+        return current.pri;
+    }
+
+    for (const GraphEdge* edge : graph->GetOutwardEdgesFrom(current.gnode)) {
+        nodekey_t neighbor = edge->to;
+        int newDist = current.pri + edge->weight;
+
+        if (newDist < minDistance[neighbor]) {
+            minDistance[neighbor] = newDist;
+
+            BPQNode updated;
+            updated.gnode = neighbor;
+            updated.pri = newDist;
+
+            frontier.Update(updated);
+        }
+    }
+   
+    }
+    
+    return -1; // Destination not reachable
 }
